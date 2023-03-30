@@ -139,6 +139,7 @@ interface IAppState {
   address: string;
   result: any | null;
   assets: IAssetData[];
+  tokenAddress: string;
 }
 
 const INITIAL_STATE: IAppState = {
@@ -153,6 +154,7 @@ const INITIAL_STATE: IAppState = {
   address: "",
   result: null,
   assets: [],
+  tokenAddress: "",
 };
 
 class App extends React.Component<any, any> {
@@ -626,6 +628,61 @@ class App extends React.Component<any, any> {
     }
   };
 
+  // @ts-ignore
+  public handleToeknAddress = e => {
+    this.setState({
+      tokenAddress: e.target.value,
+    });
+  };
+
+  public testWatchAsset = async () => {
+    const { connector, address, tokenAddress } = this.state;
+
+    if (!connector) {
+      return;
+    }
+
+    try {
+      // open modal
+      this.toggleModal();
+
+      // toggle pending request indicator
+      this.setState({ pendingRequest: true });
+
+      // send message
+      const result = await connector.sendCustomRequest({
+        method: "wallet_watchAsset",
+        params: {
+          // @ts-ignore
+          type: "ERC20",
+          options: {
+            address: tokenAddress,
+            symbol: "FOO",
+            decimals: 18,
+          },
+        },
+      })
+
+      // format displayed result
+      const formattedResult = {
+        method: "wallet_watchAsset",
+        address,
+        valid: true,
+        result,
+      };
+
+      // display result
+      this.setState({
+        connector,
+        pendingRequest: false,
+        result: formattedResult || null,
+      });
+    } catch (error) {
+      console.error(error);
+      this.setState({ connector, pendingRequest: false, result: null });
+    }
+  };
+
   public render = () => {
     const {
       assets,
@@ -684,6 +741,12 @@ class App extends React.Component<any, any> {
                     <STestButton left onClick={this.testPersonalSignMessage}>
                       {"personal_sign"}
                     </STestButton>
+                    <div>
+                      <input value={this.state.tokenAddress} onChange={this.handleToeknAddress} />
+                      <STestButton left onClick={this.testWatchAsset}>
+                        {"watch_asset"}
+                      </STestButton>
+                    </div>
                   </STestButtonContainer>
                 </Column>
                 <h3>Balances</h3>
