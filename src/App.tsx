@@ -628,6 +628,54 @@ class App extends React.Component<any, any> {
     }
   };
 
+  public testSignTypedDataV4 = async () => {
+    const { connector, address } = this.state;
+
+    if (!connector) {
+      return;
+    }
+
+    const message = JSON.stringify(eip712.example2);
+
+    // eth_signTypedData_v4 params
+    const msgParams = [address, message];
+
+    try {
+      // open modal
+      this.toggleModal();
+
+      // toggle pending request indicator
+      this.setState({ pendingRequest: true });
+
+      // sign typed data
+      const result = await connector.sendCustomRequest({ 
+        id: 1,
+        jsonrpc: "2.0",
+        method: "eth_signTypedData_v4",
+        params: msgParams
+      })
+      console.log("🚀 ~ file: App.tsx:652 ~ App ~ testSignTypedDataV4= ~ result:", result)
+
+      // format displayed result
+      const formattedResult = {
+        method: "eth_signTypedData_v4",
+        address,
+        valid: true,
+        result,
+      };
+
+      // display result
+      this.setState({
+        connector,
+        pendingRequest: false,
+        result: formattedResult || null,
+      });
+    } catch (error) {
+      console.error(error);
+      this.setState({ connector, pendingRequest: false, result: null });
+    }
+  };
+
   // @ts-ignore
   public handleToeknAddress = e => {
     this.setState({
@@ -731,6 +779,9 @@ class App extends React.Component<any, any> {
                     </STestButton>
                     <STestButton left onClick={this.testSignTypedData}>
                       {"eth_signTypedData"}
+                    </STestButton>
+                    <STestButton left onClick={this.testSignTypedDataV4}>
+                      {"eth_signTypedDataV4"}
                     </STestButton>
                     <STestButton left onClick={this.testLegacySignMessage}>
                       {"eth_sign (legacy)"}
