@@ -629,7 +629,7 @@ class App extends React.Component<any, any> {
   };
 
   public testSignTypedDataV4 = async () => {
-    const { connector, address } = this.state;
+    const { connector, address, chainId } = this.state;
 
     if (!connector) {
       return;
@@ -654,13 +654,16 @@ class App extends React.Component<any, any> {
         method: "eth_signTypedData_v4",
         params: msgParams
       })
-      console.log("🚀 ~ file: App.tsx:652 ~ App ~ testSignTypedDataV4= ~ result:", result)
+    
+      // verify signature
+      const hash = hashTypedDataMessage(message);
+      const valid = await verifySignature(address, result, hash, chainId);
 
       // format displayed result
       const formattedResult = {
         method: "eth_signTypedData_v4",
         address,
-        valid: true,
+        valid,
         result,
       };
 
